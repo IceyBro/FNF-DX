@@ -28,6 +28,7 @@ class MainMenuState extends MusicBeatState
 		'story_mode',
 		'freeplay',
 		#if MODS_ALLOWED 'mods', #end
+		'omormi',
 		'credits'
 	];
 
@@ -41,6 +42,13 @@ class MainMenuState extends MusicBeatState
 	override function create()
 	{
 		super.create();
+
+	    {
+            if (!FlxG.sound.music.playing)
+            {
+                FlxG.sound.playMusic(Paths.music('freakyMenu'), 1);
+            }
+        }
 
 		#if MODS_ALLOWED
 		Mods.pushGlobalMods();
@@ -308,6 +316,8 @@ class MainMenuState extends MusicBeatState
 							MusicBeatState.switchState(new AchievementsMenuState());
 						#end
 
+                        case 'omormi':
+							MusicBeatState.switchState(new OmormiMMState());
 						case 'credits':
 							MusicBeatState.switchState(new CreditsState());
 						case 'options':
