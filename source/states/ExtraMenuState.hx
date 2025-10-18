@@ -1,6 +1,5 @@
 package states;
 
-import flixel.FlxState;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup.FlxTypedGroup;
@@ -8,6 +7,7 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
+import flixel.tweens.FlxEase;
 import backend.MusicBeatState;
 import backend.Song;
 import backend.Difficulty;
@@ -17,11 +17,11 @@ import states.LoadingState;
 import states.MainMenuState;
 import StringTools;
 
-class BonusFreePlayState extends MusicBeatState
+class ExtraMenuState extends MusicBeatState
 {
     /* ----------  visual members (same as FreeplayState) ---------- */
     var curSelected:Int = 0;
-    var grpSongs:FlxTypedGroup<BonusMenuItem>;   // ← FIXED
+    var grpSongs:FlxTypedGroup<ExtraMenuItem>;   // ← FIXED
     var scoreText:FlxText;
     var diffText:FlxText;
     var bg:FlxSprite;
@@ -65,13 +65,13 @@ class BonusFreePlayState extends MusicBeatState
         }
 
         /* ---------- create song items ---------- */
-        grpSongs = new FlxTypedGroup<BonusMenuItem>();   // ← FIXED
+        grpSongs = new FlxTypedGroup<ExtraMenuItem>();   // ← FIXED
         add(grpSongs);
 
         var yPos:Float = 80;
         for (i in 0...songs.length)
         {
-            var item = new BonusMenuItem(songs[i], yPos); // ← FIXED
+            var item = new ExtraMenuItem(songs[i], yPos);   // ← FIXED
             grpSongs.add(item);
             yPos += 60;
         }
@@ -89,7 +89,7 @@ class BonusFreePlayState extends MusicBeatState
     }
 
     /* ---------------------------------------------------------- */
-    /*  INPUT  (Psych 0.6.3 style)                              */
+    /*  INPUT  (Psych 1.0.3 style)                              */
     /* ---------------------------------------------------------- */
     override public function update(elapsed:Float):Void
     {
@@ -102,14 +102,14 @@ class BonusFreePlayState extends MusicBeatState
             return;
         }
 
-        var up   = FlxG.keys.justPressed.UP   || FlxG.keys.justPressed.W;
-        var down = FlxG.keys.justPressed.DOWN || FlxG.keys.justPressed.S;
+        var up   = FlxG.keys.justPressed.UP   || controls.UI_UP_P;
+        var down = FlxG.keys.justPressed.DOWN || controls.UI_DOWN_P;
 
         if (up)   changeSelection(-1);
         if (down) changeSelection( 1);
 
-        var left  = FlxG.keys.justPressed.LEFT  || FlxG.keys.justPressed.A;
-        var right = FlxG.keys.justPressed.RIGHT || FlxG.keys.justPressed.D;
+        var left  = FlxG.keys.justPressed.LEFT  || controls.UI_LEFT_P;
+        var right = FlxG.keys.justPressed.RIGHT || controls.UI_RIGHT_P;
 
         if (left)  changeDiff(-1);
         if (right) changeDiff( 1);
@@ -133,9 +133,11 @@ class BonusFreePlayState extends MusicBeatState
         {
             var item = grpSongs.members[i];
             var targetY:Float = 80 + (i - curSelected) * 60;
-            FlxTween.tween(item, {y: targetY}, 0.15, {ease: flixel.tweens.FlxEase.quadOut});
-            item.targetY = targetY;
-            item.alpha   = 1 - Math.abs(i - curSelected) * 0.15;
+
+            /* 1.0.3-safe tween (slide whole sprite) */
+            FlxTween.tween(item, {y: targetY}, 0.15, {ease: FlxEase.quadOut});
+
+            item.alpha = 1 - Math.abs(i - curSelected) * 0.15;
             item.scale.set(1 - Math.abs(i - curSelected) * 0.05,
                            1 - Math.abs(i - curSelected) * 0.05);
         }
@@ -156,6 +158,7 @@ class BonusFreePlayState extends MusicBeatState
         idx += delta;
         idx = FlxMath.wrap(idx, 0, list.length - 1);
 
+        /* 1.0.3 has no setter – we change the save-key directly */
         FlxG.save.data.difficulty = list[idx];
 
         updateScoreText();
@@ -197,11 +200,10 @@ class BonusFreePlayState extends MusicBeatState
 }
 
 /* -------------------------------------------------------------- */
-/*  BonusMenuItem : simple capsule                               */
+/*  ExtraMenuItem : simple capsule                               */
 /* -------------------------------------------------------------- */
-class BonusMenuItem extends FlxSprite        // ← FIXED
+class ExtraMenuItem extends FlxSprite        // ← FIXED
 {
-    var txt:FlxText;
     public var targetY:Float = 0;
 
     public function new(song:String, startY:Float)
@@ -209,13 +211,13 @@ class BonusMenuItem extends FlxSprite        // ← FIXED
         super(40, startY);
         makeGraphic(Std.int(FlxG.width - 80), 50, FlxColor.TRANSPARENT);
 
-        /* draw the grey box directly onto our bitmap */
+        /* draw grey box */
         var box = new FlxSprite(2, 2).makeGraphic(Std.int(width - 4), Std.int(height - 4), 0xFF444444);
         box.drawFrame();
         graphic.bitmap.draw(box.graphic.bitmap, new openfl.geom.Matrix(1, 0, 0, 1, 2, 2));
 
-        /* draw the song name directly onto our bitmap */
-        txt = new FlxText(20, 12, 0, song, 24);
+        /* draw text */
+        var txt = new FlxText(20, 12, 0, song, 24);
         txt.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, LEFT);
         txt.drawFrame();
         graphic.bitmap.draw(txt.graphic.bitmap, new openfl.geom.Matrix(1, 0, 0, 1, 20, 12));

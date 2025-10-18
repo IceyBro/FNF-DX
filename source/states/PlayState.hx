@@ -2435,7 +2435,23 @@ class PlayState extends MusicBeatState
 			Highscore.saveScore(Song.loadedSongName, songScore, storyDifficulty, percent);
 			#end
 			playbackRate = 1;
+				// === COIN REWARD SYSTEM: score -> coins ===
+			var gained:Int = Std.int(Math.floor(songScore / 1000));
+			if (gained > 0) {
+ 			   // Bind only; do NOT assign FlxG.save
+			    if (!FlxG.save.isBound) FlxG.save.bind("psych-save", "FNF");
 
+ 			    var total:Int = 0;
+  				var savedCoins:Null<Int> = cast FlxG.save.data.shopCoins;
+    			if (savedCoins != null) total = savedCoins;
+
+    			total += gained;
+    			FlxG.save.data.shopCoins = total;
+    			FlxG.save.flush();
+
+    			trace('[Shop] +' + gained + ' coins from score ' + songScore + ' (total: ' + total + ')');
+			}
+				// === END COIN REWARD SYSTEM ===
 			if (chartingMode)
 			{
 				openChartEditor();
@@ -2502,6 +2518,7 @@ class PlayState extends MusicBeatState
 		}
 		return true;
 	}
+
 
 	public function KillNotes() {
 		while(notes.length > 0) {

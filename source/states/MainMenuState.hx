@@ -14,6 +14,7 @@ import flixel.effects.FlxFlicker;
 import lime.app.Application;
 import states.editors.MasterEditorMenu;
 import options.OptionsState;
+import substates.ShopSubState;
 
 class MainMenuState extends MusicBeatState
 {
@@ -28,9 +29,7 @@ class MainMenuState extends MusicBeatState
 		'freeplay',
 		'shop',
 		'extras',
-		'achievements',
-		'options',
-		'credits'
+		'options'
 	];
 
 	var magenta:FlxSprite;
@@ -41,84 +40,83 @@ class MainMenuState extends MusicBeatState
 
 	override function create()
 	{
-		super.create();
+    	super.create();
 
-		if (!FlxG.sound.music.playing)
-		{
-			FlxG.sound.playMusic(Paths.music('freakyMenu'), 1);
-		}
+	    /* vanilla music start – now works because we stop music in ExtrasMenuState */
+    	if (!FlxG.sound.music.playing)
+        	FlxG.sound.playMusic(Paths.music('freakyMenu'), 1);
 
-		Mods.loadTopMod();
+	    Mods.loadTopMod();
 
-		#if DISCORD_ALLOWED
-		DiscordClient.changePresence("IM FUNKIN IT IM FUNKIN IT", null);
-		#end
+	    #if DISCORD_ALLOWED
+	    DiscordClient.changePresence("IM FUNKIN IT IM FUNKIN IT", null);
+	    #end
 
-		persistentUpdate = persistentDraw = true;
+	    persistentUpdate = persistentDraw = true;
 
-		var yScroll:Float = 0.25;
-		var bg:FlxSprite = new FlxSprite(-80).loadGraphic(Paths.image('menuBG'));
-		bg.antialiasing = ClientPrefs.data.antialiasing;
-		bg.scrollFactor.set(0, yScroll);
-		bg.setGraphicSize(Std.int(bg.width * 1.175));
-		bg.updateHitbox();
-		bg.screenCenter();
-		add(bg);
+	    var yScroll:Float = 0.25;
+	    var bg:FlxSprite = new FlxSprite(-80).loadGraphic(Paths.image('menuBG'));
+	    bg.antialiasing = ClientPrefs.data.antialiasing;
+	    bg.scrollFactor.set(0, yScroll);
+	    bg.setGraphicSize(Std.int(bg.width * 1.175));
+	    bg.updateHitbox();
+	    bg.screenCenter();
+	    add(bg);
 
-		camFollow = new FlxObject(0, 0, 1, 1);
-		add(camFollow);
+	    camFollow = new FlxObject(0, 0, 1, 1);
+	    add(camFollow);
 
-		menuCam = new FlxCamera(); // ✅ create custom camera
-		menuCam.bgColor = 0;
-		FlxG.cameras.add(menuCam, false);
-		menuCam.follow(camFollow, null, 1.0); // ✅ make it follow camFollow
+	    menuCam = new FlxCamera();
+	    menuCam.bgColor = 0;
+	    FlxG.cameras.add(menuCam, false);
+	    menuCam.follow(camFollow, null, 1.0);
 
-		magenta = new FlxSprite(-80).loadGraphic(Paths.image('menuDesat'));
-		magenta.antialiasing = ClientPrefs.data.antialiasing;
-		magenta.scrollFactor.set(0, yScroll);
-		magenta.setGraphicSize(Std.int(magenta.width * 1.175));
-		magenta.updateHitbox();
-		magenta.screenCenter();
-		magenta.visible = false;
-		magenta.color = 0xFFfd719b;
-		add(magenta);
-		magenta.cameras = [menuCam]; // ✅ assign to custom camera
+	    magenta = new FlxSprite(-80).loadGraphic(Paths.image('menuDesat'));
+	    magenta.antialiasing = ClientPrefs.data.antialiasing;
+	    magenta.scrollFactor.set(0, yScroll);
+	    magenta.setGraphicSize(Std.int(magenta.width * 1.175));
+	    magenta.updateHitbox();
+	    magenta.screenCenter();
+	    magenta.visible = false;
+	    magenta.color = 0xFFfd719b;
+	    add(magenta);
+	    magenta.cameras = [menuCam];
 
-		menuItems = new FlxTypedGroup<FlxSprite>();
-		menuItems.cameras = [menuCam]; // ✅ assign to custom camera
-		add(menuItems);
+	    menuItems = new FlxTypedGroup<FlxSprite>();
+	    menuItems.cameras = [menuCam];
+    	add(menuItems);
 
-		for (num => option in optionShit)
-		{
-			var item:FlxSprite = createMenuItem(option, 100, (num * 140) + 30);
-			menuItems.add(item);
-		}
+	    for (num => option in optionShit)
+    	{
+    	    var item:FlxSprite = createMenuItem(option, 100, (num * 140) + 30);
+        	menuItems.add(item);
+    	}
 
-		var psychVer:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
-		psychVer.scrollFactor.set();
-		psychVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(psychVer);
+	    var psychVer:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
+    	psychVer.scrollFactor.set();
+	    psychVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+    	add(psychVer);
 
-		var fnfVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' v" + Application.current.meta.get('version'), 12);
-		fnfVer.scrollFactor.set();
-		fnfVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(fnfVer);
+	    var fnfVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' v" + Application.current.meta.get('version'), 12);
+    	fnfVer.scrollFactor.set();
+	    fnfVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+    	add(fnfVer);
 
-		changeItem();
+	    changeItem();
 
-		#if ACHIEVEMENTS_ALLOWED
-		var leDate = Date.now();
-		if (leDate.getDay() == 5 && leDate.getHours() >= 18)
-			Achievements.unlock('friday_night_play');
-		#end
+    	#if ACHIEVEMENTS_ALLOWED
+	    var leDate = Date.now();
+    	if (leDate.getDay() == 5 && leDate.getHours() >= 18)
+        	Achievements.unlock('friday_night_play');
+    	#end
 
-		#if CHECK_FOR_UPDATES
-		if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && substates.OutdatedSubState.updateVersion != psychEngineVersion) {
-			persistentUpdate = false;
-			showOutdatedWarning = false;
-			openSubState(new substates.OutdatedSubState());
-		}
-		#end
+	    #if CHECK_FOR_UPDATES
+    	if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && substates.OutdatedSubState.updateVersion != psychEngineVersion) {
+        	persistentUpdate = false;
+	        showOutdatedWarning = false;
+    	    openSubState(new substates.OutdatedSubState());
+	    }
+    	#end
 	}
 
 	function createMenuItem(name:String, x:Float, y:Float):FlxSprite
@@ -211,10 +209,8 @@ class MainMenuState extends MusicBeatState
 							MusicBeatState.switchState(new StoryMenuState());
 						case 'freeplay':
 							MusicBeatState.switchState(new FreePlayChoose());
-						case 'achievements':
-							MusicBeatState.switchState(new AchievementsMenuState());
-						case 'credits':
-							MusicBeatState.switchState(new CreditsState());
+						case 'extras':
+							MusicBeatState.switchState(new ExtraMenuState());
 						case 'options':
 							MusicBeatState.switchState(new OptionsState());
 							OptionsState.onPlayState = false;
@@ -224,10 +220,8 @@ class MainMenuState extends MusicBeatState
 								PlayState.SONG.splashSkin = null;
 								PlayState.stageUI = 'normal';
 							}
-						case 'donate':
-							CoolUtil.browserLoad('https://ninja-muffin24.itch.io/funkin');
-							selectedSomethin = false;
-							item.visible = true;
+    					case 'shop':
+        					openSubState(new ShopSubState());
 						default:
 							trace('Menu Item ${option} doesn\'t do anything');
 							selectedSomethin = false;
